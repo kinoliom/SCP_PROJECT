@@ -150,12 +150,12 @@ static void request_temp_measures(){
 static void forward_packet(char packet_sent[], uint16_t packet_length, int sender_rank){
     uint16_t ret;
     char packet[PHY_MAX_TX_LENGTH - 4];
-    strcpy(packet,packet_sent);
-    packet[1] = (char) (sender_rank);
+    int packet_type = packet_sent[0] - '0';
+    snprintf(packet, sizeof(packet), "%d%d%s", packet_type, sender_rank, packet_sent);
     ret = mac_csma_data_send(ADDR_BROADCAST, (uint8_t *) packet, packet_length);
 
     if (ret != 0){
-        printf("Packet forwarded");
+        printf("Packet forwarded: %s", packet);
     }else{
         printf("Packet forwarding failed");
     }
@@ -195,20 +195,25 @@ void mac_csma_data_received(uint16_t src_addr,
     // char test = (const char*) data[0];]
     char message[PHY_MAX_TX_LENGTH - 4];
     strcpy(message, (const char*) data);
+    sender_rank = message[1] - '0';
 
 
-    if (message[0] == '1'){
-        sender_rank = message[1] - '0';
-        printf("%c = message[1]\n", message[1]);
-        if( sender_rank < rank){
-            rank = sender_rank + 1;
-            forward_packet(message, length, rank);
-            printf("New rank: %d\n", rank);
-        }
+    if (message[0] == '1' && sender_rank < rank && rssi > -60){
+        printf("ASC: cuRrent rank: %d rcv: %s\n",rank , message);
+        rank = sender_rank + 1;
+        forward_packet(message, length, rank);
         printf("Got packet (TEMP MEASUREMENT) from %x (%s-%u). Len: %u Rssi: %d: '%s'\n",
             src_addr, src_node.type_str, src_node.num,
             length, rssi, (const char*)data);
-    }else{
+
+        // WAIT FOR SOMETIME AND THEN FORWARD A PACKET CONTAINING TEMPERATURES MEASURES ...
+
+    }else if (message[0] == '2' && rank < sender_rank && rssi > -60){
+        printf("DESC: current rank: %d rcv: %s", rank, message);
+        forward_packet(message, length, sender_rank - 1);
+
+        /* code */
+    }else{ 
         printf("\nradio > ");
         printf("Got packet from %x (%s-%u). Len: %u Rssi: %d: '%s'\n",
             src_addr, src_node.type_str, src_node.num,
