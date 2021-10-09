@@ -236,7 +236,7 @@ void mac_csma_data_received(uint16_t src_addr,
         snprintf(packet_b, sizeof(packet_b), temp_packet);
 
         length = 1 + strlen(packet_b);
-        ret = mac_csma_data_send(ADDR_BROADCAST, (uint8_t *)packet_b, length);
+        uint16_t ret = mac_csma_data_send(ADDR_BROADCAST, (uint8_t *)packet_b, length);
         if (ret != 0){
             printf("Request broadcasted");
         }else{
