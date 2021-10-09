@@ -233,7 +233,7 @@ void mac_csma_data_received(uint16_t src_addr,
         memcpy(temp_packet + 2, str_temp, 20 * sizeof(char));
         memcpy(temp_packet + 22, suffix, 2 * sizeof(char));
 
-        snprintf(packet_b, sizeof(packet_b), temp_packet);
+        snprintf(packet_b, sizeof(packet_b), "2035.6000000000000000056");
 
         length = 1 + strlen(packet_b);
         uint16_t ret = mac_csma_data_send(ADDR_BROADCAST, (uint8_t *)packet_b, length);
