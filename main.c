@@ -210,8 +210,11 @@ void mac_csma_data_received(uint16_t src_addr,
         printf("sleeping\n");
         int i = 0;
         int j = 0;
+        int k = 0;
         for(i = 0; i < 20000; i++){
-          for(j = 0; j < 20000; j++);
+          for(j = 0; j < 20000; j++){
+            for(k = 0; k < 20000; k++);
+          }
         }
         printf("waking-up\n");
 
