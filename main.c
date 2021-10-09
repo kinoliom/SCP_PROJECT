@@ -219,7 +219,7 @@ void mac_csma_data_received(uint16_t src_addr,
         uint16_t node_uid = iotlab_uid();
         struct node ownnode = node_from_uid(node_uid);
         static char packet_b[PHY_MAX_TX_LENGTH - 4];
-        char prefix[] = {'2', rank};
+        char prefix[] = {'2', rank + '0'};
         char suffix[] = {ownnode.type_str[1],ownnode.num};
         char str_temp[20];
 
@@ -238,9 +238,9 @@ void mac_csma_data_received(uint16_t src_addr,
         length = 1 + strlen(packet_b);
         uint16_t ret = mac_csma_data_send(ADDR_BROADCAST, (uint8_t *)packet_b, length);
         if (ret != 0){
-            printf("Request broadcasted");
+            printf("Temperature broadcasted");
         }else{
-            printf("Request Broadcast Failed");
+            printf("Temperature Broadcast Failed");
         }
 
     }else if (message[0] == '2' && rank < sender_rank && rssi > -60){
