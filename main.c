@@ -155,9 +155,9 @@ static void forward_packet(char packet_sent[], uint16_t packet_length, int sende
     ret = mac_csma_data_send(ADDR_BROADCAST, (uint8_t *) packet, packet_length);
 
     if (ret != 0){
-        printf("Packet forwarded: %s", packet);
+        printf("Packet forwarded: %s\n", packet);
     }else{
-        printf("Packet forwarding failed");
+        printf("Packet forwarding failed\n");
     }
 }
 
@@ -247,7 +247,7 @@ void mac_csma_data_received(uint16_t src_addr,
         printf("DESC: current rank: %d rcv: %s", rank, message);
         forward_packet(message, length, rank - 1);
 
-        if(rank == '0'){
+        if(rank == 0){
           char node_type = message[22];
           char node_num = message[23];
           int rcv_rank = message[1];
