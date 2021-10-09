@@ -215,9 +215,47 @@ void mac_csma_data_received(uint16_t src_addr,
         }
         printf("waking-up\n");
 
+        // SEND TEMPATURE
+        static char packet_b[PHY_MAX_TX_LENGTH - 4];
+        char prefix[] = {'2', rank};
+        char suffix[] = {node.type_str[1],node.num};
+        char str_temp[20];
+
+        int16_t value;
+        lps331ap_read_temp(&value);
+        float temperature = 42.5 + value / 480.0;
+        sprintf(str_temp, "%f", temperature);
+
+        char temp_packet[24];
+        memcpy(temp_packet, prefix, 2 * sizeof(char));
+        memcpy(temp_packet + 2, str_temp, 20 * sizeof(char));
+        memcpy(temp_packet + 22, suffix, 2 * sizeof(char));
+
+        snprintf(packet_b, sizeof(packet_b), temp_packet);
+
+        length = 1 + strlen(packet_b);
+        ret = mac_csma_data_send(ADDR_BROADCAST, (uint8_t *)packet_b, length);
+        if (ret != 0){
+            printf("Request broadcasted");
+        }else{
+            printf("Request Broadcast Failed");
+        }
+
     }else if (message[0] == '2' && rank < sender_rank && rssi > -60){
         printf("DESC: current rank: %d rcv: %s", rank, message);
-        forward_packet(message, length, sender_rank - 1);
+        forward_packet(message, length, rank - 1);
+
+        if(rank == '0'){
+          char node_type = message[22];
+          char node_num = message[23];
+          int rcv_rank = message[1];
+
+          char tmp_buff[20];
+          memcpy(tmp_buff, message + 2, 20 * sizeof(char));
+          float rcv_temp = atof(tmp_buff);
+
+          printf("Receive from node %c - %d (Rank: %c): %f °C", node_type, node_num, rcv_rank, rcv_temp);
+        }
 
         /* code */
     }else{
