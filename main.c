@@ -233,7 +233,7 @@ void mac_csma_data_received(uint16_t src_addr,
         memcpy(temp_packet + 2, str_temp, 20 * sizeof(char));
         memcpy(temp_packet + 22, suffix, 2 * sizeof(char));
 
-        snprintf(packet_b, sizeof(packet_b), "2035.6000000000000000056");
+        snprintf(packet_b, sizeof(packet_b), temp_packet);
 
         length = 1 + strlen(packet_b);
         uint16_t ret = mac_csma_data_send(ADDR_BROADCAST, (uint8_t *)packet_b, length);
@@ -245,7 +245,6 @@ void mac_csma_data_received(uint16_t src_addr,
 
     }else if (message[0] == '2' && rank < sender_rank && rssi > -60){
         printf("DESC: current rank: %d rcv: %s", rank, message);
-        forward_packet(message, length, rank - 1);
 
         if(rank == 0){
           char node_type = message[22];
@@ -257,6 +256,8 @@ void mac_csma_data_received(uint16_t src_addr,
           float rcv_temp = atof(tmp_buff);
 
           printf("Receive from node m%c-%d (Rank: %c): %f °C", node_type, node_num, rcv_rank, rcv_temp);
+        } else {
+          forward_packet(message, length, rank);
         }
 
         /* code */
