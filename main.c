@@ -207,13 +207,18 @@ void mac_csma_data_received(uint16_t src_addr,
             length, rssi, (const char*)data);
 
         // WAIT FOR SOMETIME AND THEN FORWARD A PACKET CONTAINING TEMPERATURES MEASURES ...
+        printf("sleeping\n");
+        for(int i = 0; i < 2000; i++){
+          for(int i = 0; i < 2000; i++);
+        }
+        printf("waking-up\n");
 
     }else if (message[0] == '2' && rank < sender_rank && rssi > -60){
         printf("DESC: current rank: %d rcv: %s", rank, message);
         forward_packet(message, length, sender_rank - 1);
 
         /* code */
-    }else{ 
+    }else{
         printf("\nradio > ");
         printf("Got packet from %x (%s-%u). Len: %u Rssi: %d: '%s'\n",
             src_addr, src_node.type_str, src_node.num,
