@@ -216,9 +216,11 @@ void mac_csma_data_received(uint16_t src_addr,
         printf("waking-up\n");
 
         // SEND TEMPATURE
+        uint16_t node_uid = iotlab_uid();
+        struct node ownnode = node_from_uid(node_uid);
         static char packet_b[PHY_MAX_TX_LENGTH - 4];
         char prefix[] = {'2', rank};
-        char suffix[] = {node.type_str[1],node.num};
+        char suffix[] = {ownnode.type_str[1],ownnode.num};
         char str_temp[20];
 
         int16_t value;
