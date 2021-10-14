@@ -43,7 +43,6 @@ volatile int8_t leds_active = 1;
 int rank = 999;
 static soft_timer_t temp_timer;
 #define TEMP_DELAY soft_timer_s_to_ticks(5)
-static void send_temp_measure(handler_arg_t arg);
 
 // test
 
@@ -144,9 +143,9 @@ static void request_temp_measures(){
     ret = mac_csma_data_send(ADDR_BROADCAST, (uint8_t *)packet, length);
 
     if (ret != 0){
-        printf("Request broadcasted\n");
+        printf("Request broadcasted");
     }else{
-        printf("Request Broadcast Failed\n");
+        printf("Request Broadcast Failed");
     }
 }
 
@@ -154,7 +153,7 @@ static void forward_packet(char packet_sent[], uint16_t packet_length, int sende
     uint16_t ret;
     char packet[PHY_MAX_TX_LENGTH - 4];
     int packet_type = packet_sent[0] - '0';
-    snprintf(packet, sizeof(packet), "%d%d%s", packet_type, sender_rank, packet_sent + 2);
+    snprintf(packet, sizeof(packet), "%d%d%s", packet_type, sender_rank, packet_sent);
     ret = mac_csma_data_send(ADDR_BROADCAST, (uint8_t *) packet, packet_length);
 
     if (ret != 0){
@@ -210,24 +209,68 @@ void mac_csma_data_received(uint16_t src_addr,
             length, rssi, (const char*)data);
 
         // WAIT FOR SOMETIME AND THEN FORWARD A PACKET CONTAINING TEMPERATURES MEASURES ...
+        printf("sleeping\n");
+        //int i = 0;
+        //int j = 0;
+        //int k = 0;
+        //for(i = 0; i < 20000; i++){
+          //for(j = 0; j < 20000; j++){
+            //for(k = 0; k < 20000; k++);
+          //}
+        //}
+
         soft_timer_start(&temp_timer, TEMP_DELAY, 0);
+
+        printf("waking-up\n");
+
+        // SEND TEMPATURE
+        uint16_t node_uid = iotlab_uid();
+        struct node ownnode = node_from_uid(node_uid);
+        static char packet_b[PHY_MAX_TX_LENGTH - 4];
+        char prefix[] = {'2', rank + '0'};
+        char suffix[] = {ownnode.type_str[1],ownnode.num};
+        char str_temp[20];
+
+        int16_t value;
+        lps331ap_read_temp(&value);
+        float temperature = 42.5 + value / 480.0;
+        sprintf(str_temp, "%f", temperature);
+
+        char temp_packet[24];
+        memcpy(temp_packet, prefix, 2 * sizeof(char));
+        memcpy(temp_packet + 2, str_temp, 20 * sizeof(char));
+        memcpy(temp_packet + 22, suffix, 2 * sizeof(char));
+
+        snprintf(packet_b, sizeof(packet_b), temp_packet);
+
+        length = 1 + strlen(packet_b);
+        uint16_t ret = mac_csma_data_send(ADDR_BROADCAST, (uint8_t *)packet_b, length);
+        if (ret != 0){
+            printf("Temperature broadcasted");
+        }else{
+            printf("Temperature Broadcast Failed");
+        }
 
     }else if (message[0] == '2' && rank < sender_rank && rssi > -60){
         printf("DESC: current rank: %d rcv: %s\n", rank, message);
+
         if(rank == 0){
-            printf("Got temperature from %dThe chip (%s-%u) temperature is: %f degree Celsius",
-            rank,
-            src_node.type_str,
-            src_node.num, 
-            42.5 + value / 480.0);
+          char node_type = message[22];
+          char node_num = message[23];
+          int rcv_rank = message[1];
+
+          char tmp_buff[20];
+          memcpy(tmp_buff, message + 2, 20 * sizeof(char));
+          float rcv_temp = strof(tmp_buff);
+
             //MODIFICATION
-          //printf("Receive from node m%c-%d (Rank: %c) temperature: %f °C\n", node_type, node_num, rcv_rank, rcv_temp);
+          printf("Receive from node m%c-%d (Rank: %c) temperature: %f °C\n", node_type, node_num, rcv_rank, rcv_temp);
         } else {
           forward_packet(message, length, rank);
         }
 
         /* code */
-    }else{ 
+    }else{
         printf("\nradio > ");
         printf("Got packet from %x (%s-%u). Len: %u Rssi: %d: '%s'\n",
             src_addr, src_node.type_str, src_node.num,
@@ -316,7 +359,6 @@ static void hardware_init()
     // Initialize a openlab timer
     soft_timer_set_handler(&tx_timer, alarm, NULL);
     soft_timer_start(&tx_timer, BLINK_PERIOD, 1);
-    soft_timer_set_handler(&temp_timer, send_temp_measure, NULL);
 }
 
 
@@ -398,20 +440,3 @@ static void alarm(handler_arg_t arg)
         event_post(EVENT_QUEUE_APPLI, handle_cmd, (handler_arg_t) '\n');
     }
 }
-
-static void send_temp_measure(handler_arg_t arg){
-    uint16_t node_uid = iotlab_uid();
-    struct node node = node_from_uid(node_uid);
-    static char packet[PHY_MAX_TX_LENGTH - 4];
-    uint16_t length = 1 + strlen(packet);
-    int16_t value;
-    lps331ap_read_temp(&value);
-    snprintf(packet, sizeof(packet), "2%dThe chip (%s-%u) temperature is: %f degree Celsius",
-        rank,
-        node.type_str,
-        node.num, 42.5 + value / 480.0
-    );
-    forward_packet(packet, length, rank);
-    printf("test\n");
-}
-
