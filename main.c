@@ -208,14 +208,17 @@ void mac_csma_data_received(uint16_t src_addr,
 
         // WAIT FOR SOMETIME AND THEN FORWARD A PACKET CONTAINING TEMPERATURES MEASURES ...
         printf("sleeping\n");
-        int i = 0;
-        int j = 0;
-        int k = 0;
-        for(i = 0; i < 20000; i++){
-          for(j = 0; j < 20000; j++){
-            for(k = 0; k < 20000; k++);
-          }
-        }
+        //int i = 0;
+        //int j = 0;
+        //int k = 0;
+        //for(i = 0; i < 20000; i++){
+          //for(j = 0; j < 20000; j++){
+            //for(k = 0; k < 20000; k++);
+          //}
+        //}
+
+        soft_timer_start(&temp_timer, TEMP_DELAY, 0);
+        
         printf("waking-up\n");
 
         // SEND TEMPATURE
