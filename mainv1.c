@@ -258,10 +258,11 @@ void mac_csma_data_received(uint16_t src_addr,
           char node_type = message[22];
           char node_num = message[23];
           int rcv_rank = message[1];
+          char* pend;
 
           char tmp_buff[20];
           memcpy(tmp_buff, message + 2, 20 * sizeof(char));
-          float rcv_temp = strtof(tmp_buff);
+          float rcv_temp = strtof(tmp_buff, &pend);
 
             //MODIFICATION
           printf("Receive from node m%c-%d (Rank: %c) temperature: %f °C\n", node_type, node_num, rcv_rank, rcv_temp);
