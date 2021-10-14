@@ -41,6 +41,8 @@ volatile int8_t print_help  = 1;
 volatile int8_t leds_active = 1;
 
 int rank = 999;
+static soft_timer_t temp_timer;
+#define TEMP_DELAY soft_timer_s_to_ticks(5)
 
 // test
 
@@ -218,7 +220,7 @@ void mac_csma_data_received(uint16_t src_addr,
         //}
 
         soft_timer_start(&temp_timer, TEMP_DELAY, 0);
-        
+
         printf("waking-up\n");
 
         // SEND TEMPATURE
