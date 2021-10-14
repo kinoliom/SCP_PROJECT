@@ -254,7 +254,7 @@ void mac_csma_data_received(uint16_t src_addr,
     }else if (message[0] == '2' && rank < sender_rank && rssi > -60){
         printf("DESC: current rank: %d rcv: %s\n", rank, message);
 
-        
+        if(rank == 0){
           char node_type = message[22];
           char node_num = message[23];
           int rcv_rank = message[1];
@@ -266,9 +266,9 @@ void mac_csma_data_received(uint16_t src_addr,
 
             //MODIFICATION
           printf("Receive from node m%c-%d (Rank: %c) temperature: %f °C\n", node_type, node_num, rcv_rank, rcv_temp);
-        
+        } else {
           forward_packet(message, length, rank);
-        
+        }
 
         /* code */
     }else{
