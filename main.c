@@ -21,7 +21,7 @@
 #include "iotlab_uid_num_hashtable.h"
 
 // choose channel in [11-26]
-#define CHANNEL 22
+#define CHANNEL 21
 #define RADIO_POWER PHY_POWER_0dBm
 
 #define ADDR_BROADCAST 0xFFFF
